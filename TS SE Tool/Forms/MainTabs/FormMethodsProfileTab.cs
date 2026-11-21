@@ -23,10 +23,16 @@ namespace TS_SE_Tool
 {
     public partial class FormMain
     {
+        private NumericUpDown busExperienceEditor;
+        private Label busCareerLevelLabel;
+        private Label busCareerNextLevelLabel;
+
         //Profile tab
         private void CreateProfilePanelControls()
         {
-            int pSkillsNameHeight = 64, pSkillsNameWidth = 64, pSkillsNameOffset = 5, pSkillsNamelOffset = 12;
+            CreateBusCareerControls();
+
+            int pSkillsNameHeight = 60, pSkillsNameWidth = 64, pSkillsNameOffset = 3, pSkillsNamelOffset = 12;
             
             for (int i = 0; i < 6; i++)
             {
@@ -49,7 +55,7 @@ namespace TS_SE_Tool
                 slabel.AutoSize = true;
             }
 
-            int bADRHeight = 48, bADRWidth = 48, pOffset = 6, lOffset = pSkillsNameWidth + pSkillsNamelOffset * 2;
+            int bADRHeight = 44, bADRWidth = 48, pOffset = 6, lOffset = pSkillsNameWidth + pSkillsNamelOffset * 2;
             
             for (int i = 0; i < 6; i++)
             {
@@ -114,6 +120,7 @@ namespace TS_SE_Tool
         private void FillFormProfileControls()
         {
             FormUpdatePlayerLevel();
+            FormUpdateBusCareer();
 
             char[] ADR = Convert.ToString(SiiNunitData.Economy.adr, 2).PadLeft(6, '0').ToCharArray();
 
@@ -161,6 +168,68 @@ namespace TS_SE_Tool
 
             labelPlayerExperience.Text = SiiNunitData.Economy.experience_points.ToString();
             labelPlayerExperienceNxtLvlThreshhold.Text = playerLvlPlus[1].ToString();
+        }
+
+        private void CreateBusCareerControls()
+        {
+            // Keep this dynamic so old designer files still load correctly.
+            groupBoxProfilePlayerLevel.Height = 112;
+            groupBoxProfileSkill.Location = new Point(6, 120);
+            groupBoxProfileSkill.Size = new Size(420, 406);
+
+            Label caption = new Label {
+                AutoSize = true,
+                Location = new Point(6, 68),
+                Text = "Bus career XP:"
+            };
+            panelPlayerLevel.Controls.Add(caption);
+
+            busExperienceEditor = new NumericUpDown {
+                Location = new Point(91, 65),
+                Size = new Size(115, 20),
+                Minimum = 0,
+                Maximum = int.MaxValue,
+                ThousandsSeparator = true
+            };
+            busExperienceEditor.ValueChanged += BusExperienceEditor_ValueChanged;
+            panelPlayerLevel.Controls.Add(busExperienceEditor);
+
+            busCareerLevelLabel = new Label {
+                AutoSize = true,
+                Location = new Point(220, 68),
+                Text = "Bus level: 0"
+            };
+            panelPlayerLevel.Controls.Add(busCareerLevelLabel);
+
+            busCareerNextLevelLabel = new Label {
+                AutoSize = true,
+                Location = new Point(220, 88),
+                Text = "Next: 0 XP"
+            };
+            panelPlayerLevel.Controls.Add(busCareerNextLevelLabel);
+        }
+
+        private void BusExperienceEditor_ValueChanged(object sender, EventArgs e)
+        {
+            if (SiiNunitData == null || busExperienceEditor == null)
+                return;
+
+            SiiNunitData.Economy.bus_experience_points = Decimal.ToInt32(busExperienceEditor.Value);
+            FormUpdateBusCareer();
+        }
+
+        private void FormUpdateBusCareer()
+        {
+            if (SiiNunitData == null || busExperienceEditor == null)
+                return;
+
+            int experience = Math.Max(0, SiiNunitData.Economy.bus_experience_points);
+            if (busExperienceEditor.Value != experience)
+                busExperienceEditor.Value = experience;
+
+            int[] level = SiiNunitData.Economy.getBusCareerLvl();
+            busCareerLevelLabel.Text = "Bus level: " + level[0].ToString();
+            busCareerNextLevelLabel.Text = "Next: " + level[1].ToString() + " XP";
         }
 
         private void CreateUserColorsButtons()

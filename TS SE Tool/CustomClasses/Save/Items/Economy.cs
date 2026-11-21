@@ -1465,6 +1465,36 @@ namespace TS_SE_Tool.Save.Items
             } while (true);
         }
 
+        // Bus career stores experience only. The game derives the level from
+        // the same progression table; there are no separate bus skill fields
+        // in the save format.
+        internal int[] getBusCareerLvl()
+        {
+            if (Globals.PlayerLevelUps == null || Globals.PlayerLevelUps.Length == 0)
+                return new int[] { 0, 0 };
+
+            int currentLvl = 0, lvlThreshhold = 0,
+                finalThreshhold = Globals.PlayerLevelUps[Globals.PlayerLevelUps.Length - 1];
+
+            foreach (int lvlstep in Globals.PlayerLevelUps)
+            {
+                lvlThreshhold += lvlstep;
+
+                if (bus_experience_points < lvlThreshhold)
+                    return new int[] { currentLvl, lvlThreshhold };
+                currentLvl++;
+            }
+
+            do
+            {
+                lvlThreshhold += finalThreshhold;
+
+                if (bus_experience_points < lvlThreshhold)
+                    return new int[] { currentLvl, lvlThreshhold };
+                currentLvl++;
+            } while (true);
+        }
+
         internal void setPlayerExp(int _plLvl)
         {
             uint experience = 0;
