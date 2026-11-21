@@ -1,0 +1,34 @@
+name: Build TS SE Tool
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore "TS SE Tool.sln"
+
+      - name: Build Release
+        run: msbuild "TS SE Tool.sln" /t:Rebuild /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts-se-tool-release
+          path: |
+            TS SE Tool/bin/Release/**
+          if-no-files-found: error
